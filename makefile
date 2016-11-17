@@ -22,10 +22,10 @@ bin/% : src/%.cpp lib/libpuzzler.a
 
 serenity_now_% : all
 	mkdir -p w
-	bin/run_puzzle $* 100 1
-	bin/create_puzzle_input $* 100 1 > w/$*.in
-	cat w/$*.in | bin/execute_puzzle 1 1 > w/$*.ref.out
-	cat w/$*.in | bin/execute_puzzle 0 1 > w/$*.got.out
-	diff w/$*.ref.out w/$*.got.out
+	bin/run_puzzle $* 100 2
+	bin/create_puzzle_input $* 100 2 > w/$*.in
+	cat w/$*.in | bin/execute_puzzle 1 2 > w/$*.ref.out
+	cat w/$*.in | bin/execute_puzzle 0 2 > w/$*.got.out
+	bin/compare_puzzle_output w/$*.ref.out w/$*.got.out 2
 
 serenity_now : $(foreach x,julia ising_spin logic_sim random_walk,serenity_now_$(x))
