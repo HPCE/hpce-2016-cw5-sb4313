@@ -214,7 +214,7 @@ namespace puzzler
       std::vector<double> sums(pInput->maxTime, 0.0);
       std::vector<double> sumSquares(pInput->maxTime, 0.0);
       
-      log->LogInfo("Starting steps.");
+      log->LogInfo("Starting steps");
       
       std::mt19937 rng(pInput->seed); // Gives the same sequence on all platforms
       uint32_t seed;
