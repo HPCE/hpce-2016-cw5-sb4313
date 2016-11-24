@@ -4,6 +4,22 @@ HPCE 2016 CW5
 - Issued: Fri 11th Nov
 - Due: Fri 25th Nov, 22:00
 
+Updates to Julia
+----------------
+
+As noted in my email, I failed to push the reference specification
+to master, which left you in limbo if you don't know floating-point
+well and were trying to get bit-accurate results in OpenCL.
+
+So for Julia it will be up to me (David) to manually check
+whether your implementation matches a possible valid
+refinement of the original spec into IEEE floating-point.
+Make sure you include some notes about testing in your
+readme document (though you probably want to include
+something on that anyway).
+
+Sorry!
+
 
 Specification
 -------------
@@ -179,7 +195,8 @@ modified the makefile so that you can do:
 
 To check your implementation against it. I also tightened
 up the reference implementation so it loses any possible
-ambiguity.
+ambiguity (becomes platform portable, rather than dependent
+on the C++ implementation).
 
 Intermediate Testing
 --------------------
