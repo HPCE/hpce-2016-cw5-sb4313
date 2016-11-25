@@ -51,10 +51,10 @@ public:
 
       double calcSrc(unsigned src, const std::vector<double> &state, const puzzler::LogicSimInput *input) const
       {
-        std::stack<unsigned> srcstack;
-        double a = 0;
-        double done = 0;
-        /*if(src < state.size()){
+        //std::stack<unsigned> srcstack;
+        //double a = 0;
+        //double done = 0;
+        if(src < state.size()){
           return state.at(src);
         }else{
           unsigned xorSrc=src - state.size();
@@ -62,9 +62,9 @@ public:
           a=calcSrc(input->xorGateInputs.at(xorSrc).first, state, input);
           b=calcSrc(input->xorGateInputs.at(xorSrc).second, state, input);
           return a != b;
-        }*/
+        }
 
-          while(!done){
+          /*while(!done){
             if(src>state.size()){
               srcstack.push(src);
               src = input->xorGateInputs.at(src - state.size()).first;
@@ -80,7 +80,7 @@ public:
               }
             }
           }
-          return a;
+          return a;*/
       }
 
   virtual void Execute(
