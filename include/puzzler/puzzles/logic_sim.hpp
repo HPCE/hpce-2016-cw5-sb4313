@@ -122,12 +122,7 @@ namespace puzzler
 			  LogicSimOutput *pOutput
 			  ) const
     {
-
-      std::cout << "timing execution" << std::endl;
-        clock_t startTime = clock();
-
       log->LogVerbose("About to start running clock cycles (total = %d", pInput->clockCycles);
-       
       std::vector<bool> state=pInput->inputState;
       for(unsigned i=0; i<pInput->clockCycles; i++){
 	log->LogVerbose("Starting iteration %d of %d\n", i, pInput->clockCycles);
@@ -146,7 +141,6 @@ namespace puzzler
       log->LogVerbose("Finished clock cycles");
 
       pOutput->outputState=state;
-      std::cout << "This reference took " << double( clock() - startTime ) / (double)CLOCKS_PER_SEC<< " seconds." << std::endl;
     }
 
   public:

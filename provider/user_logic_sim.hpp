@@ -88,8 +88,8 @@ public:
 		       const puzzler::LogicSimInput *pInput,
 		       puzzler::LogicSimOutput *pOutput
             		       ) const override     {
-                          std::cout << "timing execution" << std::endl;
-                          clock_t startTime = clock();
+                          //std::cout << "timing execution" << std::endl;
+                          //clock_t startTime = clock();
                           log->LogVerbose("About to start running clock cycles (total = %d", pInput->clockCycles);
                           std::vector<bool> state=pInput->inputState;
                           std::vector<double> vec(state.begin(),state.end());
@@ -113,7 +113,7 @@ public:
 
                           std::vector<bool> out(vec.begin(), vec.end());
                           pOutput->outputState=out;
-                          std::cout << "This took " << double( clock() - startTime ) / (double)CLOCKS_PER_SEC<< " seconds." << std::endl;
+                          //std::cout << "This took " << double( clock() - startTime ) / (double)CLOCKS_PER_SEC<< " seconds." << std::endl;
                         }
 
 };

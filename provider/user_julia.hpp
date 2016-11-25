@@ -35,9 +35,9 @@ public:
     float dx=3.0f/width, dy=3.0f/height;
     //unsigned useKernel = 1;
 
-  if(maxIter < 900) // change to max_iter <1000
+  if(maxIter < 1200) // change to max_iter <1000
   {
-    unsigned inner_K = getLoopK();
+    unsigned inner_K = 16;
 
     typedef tbb::blocked_range<unsigned> my_range_t;
 
@@ -70,7 +70,7 @@ public:
     tbb::parallel_for (range, f, tbb::simple_partitioner());
   }
 
-  if(maxIter >= 900)
+  if(maxIter >= 1200)
   {
     // Select platform
     std::vector<cl::Platform> platforms;
@@ -130,19 +130,16 @@ public:
           throw;
         }
 
+        cl::Kernel kernel(program, "julia_kernel");
+
+        cl::CommandQueue queue(context, device);
+
+
         size_t cbBuffer=width * height * 4;
         //cl::Buffer buffProperties(context, CL_MEM_READ_ONLY, cbBuffer);
         //cl::Buffer buffState(context, CL_MEM_READ_ONLY, cbBuffer);
-        cl::Buffer buffBuffer(context, CL_MEM_WRITE_ONLY, cbBuffer);
+        cl::Buffer buffBuffer(context, CL_MEM_READ_WRITE, cbBuffer);
 
-        cl::Kernel kernel(program, "julia_kernel");
-
-        //std::cerr<<"1 "<<"\n";
-
-        //unsigned w=world.w, h=world.h;
-        
-        //float outer=world.alpha*dt;     // We spread alpha to other cells per time
-        //float inner=1-outer/4;              // Anything that doesn't spread stays
         
         kernel.setArg(0, height);
         kernel.setArg(1, width);
@@ -150,13 +147,7 @@ public:
         kernel.setArg(3, c);
         kernel.setArg(4, buffBuffer);
 
-        cl::CommandQueue queue(context, device);
-
-        //queue.enqueueWriteBuffer(buffProperties, CL_TRUE, 0, cbBuffer, &world.properties[0]);
-
-        // This is our temporary working space
         std::vector<float> buffer(width * height * 4);
-
 
         cl::Event evCopiedState;
             //queue.enqueueWriteBuffer(buffState, CL_FALSE, 0, cbBuffer, &world.state[0], NULL, &evCopiedState);
@@ -165,19 +156,12 @@ public:
         cl::NDRange globalSize(width, height);   // Global size must match the original loops
         cl::NDRange localSize=cl::NullRange;    // We don't care about local size
 
-        std::vector<cl::Event> kernelDependencies(1, evCopiedState);
+        queue.enqueueNDRangeKernel(kernel, offset, globalSize, localSize);
 
-        cl::Event evExecutedKernel;
+        queue.enqueueBarrier();
 
-        queue.enqueueNDRangeKernel(kernel, offset, globalSize, localSize, NULL, &evExecutedKernel);
+        queue.enqueueReadBuffer(buffBuffer, CL_TRUE, 0, cbBuffer, &pDest[0]);
 
-        std::vector<cl::Event> copyBackDependencies(1, evExecutedKernel);
-
-        queue.enqueueReadBuffer(buffBuffer, CL_TRUE, 0, cbBuffer, &pDest[0], &copyBackDependencies);
-
-            // All cells have now been calculated and placed in buffer, so we replace
-            // the old state with the new state
-         //std::swap(pDest, buffer);
       }
     }
 
@@ -222,37 +206,8 @@ public:
 
       log->LogInfo("Finished");
 
-      std::cout << "This took " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " seconds" << std::endl;
-
     }
 
-    virtual unsigned getLoopK(void) const
-    {
-
-      char *v=getenv("HPCE_FFT_LOOP_K");
-      if(v==NULL)
-      {
-       return 16; 
-     }
-     else
-     {
-       return atoi(v);
-     }
-   }
-
-   virtual unsigned getKernel(void) const
-   {
-
-    char *v=getenv("GET_KERNEL");
-    if(v==NULL)
-    {
-     return 1; 
-   }
-   else
-   {
-     return atoi(v);
-   }
- }
 
  std::string LoadSource(const char *fileName) const
  {

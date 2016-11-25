@@ -104,8 +104,7 @@ public:
            ) const override 
       {
 
-      std::cout << "timing execution" << std::endl;
-      clock_t startTime = clock();
+      
 
       int n=pInput->n;
       
@@ -150,13 +149,13 @@ public:
       pOutput->stddevs.resize(pInput->maxTime);
       tbb::parallel_for(0u, pInput->maxTime, [&](unsigned i){
         pOutput->means[i] = sums[i] / pInput->maxTime;
-        pOutput->stddevs[i] = sqrt( sumSquares[i]/pInput->maxTime - pOutput->means[i]*pOutput->means[i] );
+        pOutput->stddevs[i] = sqrt( sumSquares[i]/pInput->maxTime - pOutput->means[i]*pOutput->means[i]);
         log->LogVerbose("  time %u : mean=%8.6f, stddev=%8.4f", i, pOutput->means[i], pOutput->stddevs[i]);
       });
       
       log->LogInfo("Finished");
 
-      std::cout << "This took " << double( clock() - startTime ) / (double)CLOCKS_PER_SEC<< " seconds." << std::endl;
+      //std::cout << "This took " << double( clock() - startTime ) / (double)CLOCKS_PER_SEC<< " seconds." << std::endl;
     }
     
   
