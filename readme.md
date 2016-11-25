@@ -4,6 +4,22 @@ HPCE 2016 CW5
 - Issued: Fri 11th Nov
 - Due: Fri 25th Nov, 22:00
 
+Updates to Julia
+----------------
+
+As noted in my email, I failed to push the reference specification
+to master, which left you in limbo if you don't know floating-point
+well and were trying to get bit-accurate results in OpenCL.
+
+So for Julia it will be up to me (David) to manually check
+whether your implementation matches a possible valid
+refinement of the original spec into IEEE floating-point.
+Make sure you include some notes about testing in your
+readme document (though you probably want to include
+something on that anyway).
+
+Sorry!
+
 
 Specification
 -------------
@@ -45,7 +61,7 @@ the repo got to Settings->Collaborators and Teams, or
 go to:
 
     https://github.com/HPCE/hpce-2016-cw5-[LOGIN]/settings/collaboration
-    
+
 You can then add you partner as a collaborator.
 
 During development try to keep the two accounts in sync if possible.
@@ -111,15 +127,15 @@ Deliverable format
   - Any changes will happen in an additive way (none are expected for this CW)
 
   - Bug-fixes to `include` stuff are still welcome.
-  
+
 - You own the files in the `provider` directory
 
   - You'll be replacing the implementation of `XXXXProvider::Execute` in `provider/xxxx.hpp`
     with something (hopefully) faster.
-  
+
   - A good starting point is to replace the implementation of `XXXXProvider::Execute` with a copy
     of the body of `XXXXPuzzle::ReferenceExecute`, and check that it still does the same thing.
-    
+
   - The reason for the indirection is to force people to have an unmodified reference version
     available at all times, as it tends to encourage testing.
 
@@ -143,6 +159,44 @@ The reason for all this strange indirection is that I want to give
 maximum freedom for you to do strange things within your implementation
 (example definitions of "strange" include CMake) while still having a clean
 abstraction layer between your code and the client code.
+
+Floating-point Implementation
+-----------------------------
+
+So some notes on floating-point, mainly applying to
+Julia:
+
+- Generally speaking, `(a+b)+c` and `a+(b+c)` are not equal.
+
+- `x > C^2` does not imply that `sqrt(x) > C` in all cases
+
+- If you have x = a*b+c, it is not necessarily executed the
+  same on all platforms.
+
+- Division and sqrt are not implemented correctly rounded on
+  all platforms.
+
+However:
+
+- For a positive constant C, there exists a value C' such that
+  `sqrt(x) > C` <-> `x > C'` (it will be ever so slightly bigger
+  than C).
+
+- If you do `x = a*b; x+=c;` then it should execute the same
+  on all platforms.
+
+- There is an option called `-cl-disable-opt` that can stop
+  GPUs doing overly aggressive transformations.
+
+For the case of Julia, I added some reference inputs, and
+modified the makefile so that you can do:
+
+    make check_julia
+
+To check your implementation against it. I also tightened
+up the reference implementation so it loses any possible
+ambiguity (becomes platform portable, rather than dependent
+on the C++ implementation).
 
 Intermediate Testing
 --------------------
