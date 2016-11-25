@@ -207,6 +207,10 @@ namespace puzzler
 			  IsingSpinOutput *pOutput
 			  ) const
     {
+
+      std::cout << "timing execution" << std::endl;
+      clock_t startTime = clock();
+
       int n=pInput->n;
       
       std::vector<int> current(n*n), next(n*n);
@@ -254,6 +258,7 @@ namespace puzzler
       }
       
       log->LogInfo("Finished");
+      std::cout << "This took " << double( clock() - startTime ) / (double)CLOCKS_PER_SEC<< " seconds." << std::endl;
     }
 
   public:

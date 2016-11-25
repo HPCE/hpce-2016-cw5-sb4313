@@ -36,12 +36,16 @@ int main(int argc, char *argv[])
       auto input=puzzle->CreateInput(logDest.get(), scale);
 
       logDest->LogInfo("Executing puzzle");
+      //clock_t startTime = clock();
       auto got=puzzle->MakeEmptyOutput(input.get());
       puzzle->Execute(logDest.get(), input.get(), got.get());
+      //std::cout << double( clock() - startTime ) / (double)CLOCKS_PER_SEC<< " seconds." << std::endl;
 
       logDest->LogInfo("Executing reference");
+      //clock_t startTime2 = clock();
       auto ref=puzzle->MakeEmptyOutput(input.get());
       puzzle->ReferenceExecute(logDest.get(), input.get(), ref.get());
+      //std::cout << double( clock() - startTime2 ) / (double)CLOCKS_PER_SEC<< " seconds." << std::endl;
 
       logDest->LogInfo("Checking output");
       if(!ref->Equals(got.get())){

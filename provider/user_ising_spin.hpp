@@ -1,166 +1,166 @@
 #ifndef user_ising_spin_hpp
 #define user_ising_spin_hpp
+#include "tbb/parallel_for.h"
 
 #include "puzzler/puzzles/ising_spin.hpp"
 
 class IsingSpinProvider
-: public puzzler::IsingSpinPuzzle
+  : public puzzler::IsingSpinPuzzle
 {
+public:
+  IsingSpinProvider()
+  {}
 
 
-private:
-
-    // This has some interesting and maybe useful properties...
-    // The recurrence equation is:
-    //   x_{i+1} = x_i * 1664525 + 1013904223 mod 2^32
-  uint32_t lcg(uint32_t x) const
-  {
-    return x*1664525+1013904223;
-  };
-  
-  void dump(
-    int logLevel,
-    const puzzler::IsingSpinInput *pInput,
-    int *in,
-    puzzler::ILog *log
-    ) const {
-    if(logLevel > log->Level())
-      return;
-    
-    unsigned n=pInput->n;
-    
-    log->Log(logLevel, [&](std::ostream &dst){
-      dst<<"\n";
-      for(unsigned y=0; y<n; y++){
-        for(unsigned x=0; x<n; x++){
-          dst<<(in[y*n+x]<0?"-":"+");
-        } 
-        dst<<"\n";
-      }
-    });
-  }
-  
-  void init(
-    const puzzler::IsingSpinInput *pInput,
-    uint32_t &seed,
-    int *out
-    ) const {
-    unsigned n=pInput->n;
-    
-    for(unsigned x=0; x<n; x++){
-      for(unsigned y=0; y<n; y++){
-        out[y*n+x] = (seed < 0x80001000ul) ? +1 : -1;
-        seed = lcg(seed);
-      }
-    }
-  }
-  
-  int count(
-    const puzzler::IsingSpinInput *pInput,
-    const int *in
-    ) const {
-    unsigned n=pInput->n;
-    
-    return std::accumulate(in, in+n*n, 0);
-  }
-  
-  void step(
-    const puzzler::IsingSpinInput *pInput,
-    uint32_t &seed,
-    const int *in,
-    int *out
-    ) const {
-    unsigned n=pInput->n;
-    
-    for(unsigned x=0; x<n; x++){
-      for(unsigned y=0; y<n; y++){
-        int W = x==0 ?    in[y*n+n-1]   : in[y*n+x-1];
-        int E = x==n-1 ?  in[y*n+0]     : in[y*n+x+1];
-        int N = y==0 ?    in[(n-1)*n+x] : in[(y-1)*n+x];
-        int S = y==n-1 ?  in[0*n+x]     : in[(y+1)*n+x];
-        int nhood=W+E+N+S;
-        
-        int C = in[y*n+x];
-        
-        unsigned index=(nhood+4)/2 + 5*(C+1)/2;
-        float prob=pInput->probs[index];
-
-        if( seed < prob){
-            C *= -1; // Flip
-          }
-          
-          out[y*n+x]=C;
-          
-          seed = lcg(seed);
+      void init(
+        const puzzler::IsingSpinInput *pInput,
+        uint32_t &seed,
+        int *out
+      ) const {
+      unsigned n=pInput->n;
+      
+      for(unsigned x=0; x<n; x++){
+        for(unsigned y=0; y<n; y++){
+          out[y*n+x] = (seed < 0x80001000ul) ? +1 : -1;
+          seed = seed*1664525+1013904223;
         }
       }
     }
-    
 
 
-  public:
-    IsingSpinProvider()
-    {}
 
-    virtual void Execute(
-     puzzler::ILog *log,
-     const puzzler::IsingSpinInput *input,
-     puzzler::IsingSpinOutput *output
-     ) const override {
 
+
+
+    void dump(
+      int logLevel,
+      const puzzler::IsingSpinInput *pInput,
+      int *in,
+      puzzler::ILog *log
+    ) const {
+      if(logLevel > log->Level())
+        return;
       
-      int n=input->n;
+      unsigned n=pInput->n;
+      
+      log->Log(logLevel, [&](std::ostream &dst){
+        dst<<"\n";
+        for(unsigned y=0; y<n; y++){
+          for(unsigned x=0; x<n; x++){
+            dst<<(in[y*n+x]<0?"-":"+");
+          } 
+          dst<<"\n";
+        }
+      });
+    }
+
+        int count(
+          const puzzler::IsingSpinInput *pInput,
+          const int *in
+        ) const {
+          unsigned n=pInput->n;
+          
+          return std::accumulate(in, in+n*n, 0);
+
+        }
+
+            void step(
+              const puzzler::IsingSpinInput *pInput,
+              uint32_t &seed,
+              const int *in,
+              int *out
+            ) const {
+              unsigned n=pInput->n;
+              
+              for(unsigned x=0; x<n; x++){
+                for(unsigned y=0; y<n; y++){
+                  int W = x==0 ?    in[y*n+n-1]   : in[y*n+x-1];
+                  int E = x==n-1 ?  in[y*n+0]     : in[y*n+x+1];
+                  int N = y==0 ?    in[(n-1)*n+x] : in[(y-1)*n+x];
+                  int S = y==n-1 ?  in[0*n+x]     : in[(y+1)*n+x];
+                  int nhood=W+E+N+S;
+                  
+                  int C = in[y*n+x];
+                  
+                  unsigned index=(nhood+4)/2 + 5*(C+1)/2;
+                  float prob=pInput->probs[index];
+
+                  if( seed < prob){
+                    C *= -1; // Flip
+                  }
+                  
+                  out[y*n+x]=C;
+                  
+                  seed = seed*1664525+1013904223;
+                }
+              }
+            }
+
+
+  virtual void Execute(
+           puzzler::ILog *log,
+           const puzzler::IsingSpinInput *pInput,
+           puzzler::IsingSpinOutput *pOutput
+           ) const override 
+      {
+
+      std::cout << "timing execution" << std::endl;
+      clock_t startTime = clock();
+
+      int n=pInput->n;
       
       std::vector<int> current(n*n), next(n*n);
       
-      std::vector<double> sums(input->maxTime, 0.0);
-      std::vector<double> sumSquares(input->maxTime, 0.0);
+      std::vector<double> sums(pInput->maxTime, 0.0);
+      std::vector<double> sumSquares(pInput->maxTime, 0.0);
       
-      log->LogInfo("Starting steps.");
+      log->LogInfo("Starting steps");
       
-      std::mt19937 rng(input->seed); // Gives the same sequence on all platforms
+      std::mt19937 rng(pInput->seed); // Gives the same sequence on all platforms
       uint32_t seed;
-      for(unsigned i=0; i<input->repeats; i++){
+      for(unsigned i=0; i<pInput->repeats; i++){
         seed=rng();
         
         log->LogVerbose("  Repeat %u", i);
         
-        init(input, seed, &current[0]);
+        init(pInput, seed, &current[0]);
         
-        for(unsigned t=0; t<input->maxTime; t++){
+        for(unsigned t=0; t<pInput->maxTime; t++){
           log->LogDebug("    Step %u", t);
           
           // Dump the state of spins on high log levels
-          dump(puzzler::Log_Debug, input, &current[0], log);
+          dump(puzzler::Log_Debug, pInput, &current[0], log);
           
-          //step(input, seed, &current[0], &next[0]);
+          step(pInput, seed, &current[0], &next[0]);
           std::swap(current, next);
           
           // Track the statistics
-          double countPositive=count(input, &current[0]);
+          //double countPositive=count(pInput, &current[0]);
+          double countPositive = std::accumulate(&current[0], &current[0]+((pInput->n)*(pInput->n)), 0);
           sums[t] += countPositive;
           sumSquares[t] += countPositive*countPositive;
         }
         
-        seed=lcg(seed);
+        //seed=seed*1664525+1013904223;
       }
       
       log->LogInfo("Calculating final statistics");
       
-      output->means.resize(input->maxTime);
-      output->stddevs.resize(input->maxTime);
-      for(unsigned i=0; i<input->maxTime; i++){
-        output->means[i] = sums[i] / input->maxTime;
-        output->stddevs[i] = sqrt( sumSquares[i]/input->maxTime - output->means[i]*output->means[i] );
-        log->LogVerbose("  time %u : mean=%8.6f, stddev=%8.4f", i, output->means[i], output->stddevs[i]);
-      }
+      pOutput->means.resize(pInput->maxTime);
+      pOutput->stddevs.resize(pInput->maxTime);
+      tbb::parallel_for(0u, pInput->maxTime, [&](unsigned i){
+        pOutput->means[i] = sums[i] / pInput->maxTime;
+        pOutput->stddevs[i] = sqrt( sumSquares[i]/pInput->maxTime - pOutput->means[i]*pOutput->means[i] );
+        log->LogVerbose("  time %u : mean=%8.6f, stddev=%8.4f", i, pOutput->means[i], pOutput->stddevs[i]);
+      });
       
       log->LogInfo("Finished");
 
-
-      return ReferenceExecute(log, input, output);
+      std::cout << "This took " << double( clock() - startTime ) / (double)CLOCKS_PER_SEC<< " seconds." << std::endl;
     }
+    
+  
 
-  };
+};
 
 #endif
